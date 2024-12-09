@@ -1,11 +1,22 @@
+import { useState } from "react"
 import { ScrollArea } from "./ui/scroll-area"
+
+interface Event {
+  id: string
+  title: string
+  description: string
+  startTime: string
+  duration: number
+}
 
 interface CalendarGridProps {
   selectedDate: Date
-  events: any[]
+  events: Event[]
 }
 
 export function CalendarGrid({ selectedDate, events }: CalendarGridProps) {
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
+
   const startOfWeek = new Date(
     selectedDate.getFullYear(),
     selectedDate.getMonth(),
@@ -19,58 +30,95 @@ export function CalendarGrid({ selectedDate, events }: CalendarGridProps) {
     return date
   })
 
-  return (
-    <ScrollArea className="h-[calc(100vh-8.5rem)]">
-      <div className="relative grid grid-cols-8">
-        <div className="flex flex-col items-center border-r py-2 text-sm">
-          {hours.map((hour) => (
-            <div
-              key={hour}
-              className="relative flex h-12 items-center justify-center text-right text-sm text-muted-foreground"
-            >
-              <span>
-                {hour === 0 ? "12" : hour > 12 ? hour - 12 : hour} {hour >= 12 ? "PM" : "AM"}
-              </span>
-            </div>
-          ))}
-        </div>
+  const handleEventClick = (event: Event) => {
+    setSelectedEvent(event)
+  }
 
-        {days.map((day, dayIndex) => (
-          <div key={dayIndex} className="relative border-r">
+  const closePopup = () => {
+    setSelectedEvent(null)
+  }
+
+  return (
+    <>
+      <ScrollArea className="h-[calc(100vh-8.5rem)]">
+        <div className="relative grid grid-cols-8">
+          <div className="flex flex-col items-center border-r py-2 text-sm">
             {hours.map((hour) => (
               <div
                 key={hour}
-                className="relative h-12 border-b border-dashed"
+                className="relative flex h-12 items-center justify-center text-right text-sm text-muted-foreground"
               >
-                {events
-                  .filter((event) => {
-                    const eventDate = new Date(event.startTime)
-                    return (
-                      eventDate.toDateString() === day.toDateString() &&
-                      eventDate.getHours() === hour
-                    )
-                  })
-                  .map((event, eventIndex) => (
-                    <div
-                      key={eventIndex}
-                      className="absolute inset-x-1 bg-blue-500 text-white p-1 text-xs rounded relative group"
-                      style={{
-                        top: `${(new Date(event.startTime).getMinutes() / 60) * 100}%`,
-                        height: `${(event.duration / 60) * 100}%`,
-                      }}
-                    >
-                      {event.title}
-                      {/* Tooltip showing description on hover */}
-                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 w-max bg-black text-white text-xs p-2 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                        {event.description}
-                      </div>
-                    </div>
-                  ))}
+                <span>
+                  {hour === 0 ? "12" : hour > 12 ? hour - 12 : hour} {hour >= 12 ? "PM" : "AM"}
+                </span>
               </div>
             ))}
           </div>
-        ))}
-      </div>
-    </ScrollArea>
+
+          {days.map((day, dayIndex) => (
+            <div key={dayIndex} className="relative border-r">
+              {hours.map((hour) => (
+                <div
+                  key={hour}
+                  className="relative h-12 border-b border-dashed"
+                >
+                  {events
+                    .filter((event) => {
+                      const eventDate = new Date(event.startTime)
+                      return (
+                        eventDate.toDateString() === day.toDateString() &&
+                        eventDate.getHours() === hour
+                      )
+                    })
+                    .map((event, eventIndex) => (
+                      <div
+                        key={eventIndex}
+                        className="absolute bg-blue-500 text-white text-xs rounded relative group cursor-pointer"
+                        style={{
+                          top: `${(new Date(event.startTime).getMinutes() / 60) * 100}%`,
+                          height: `${(event.duration / 60) * 100}%`,
+                        }}
+                        onClick={() => handleEventClick(event)}
+                      >
+                        {event.title}
+                      </div>
+                    ))}
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      </ScrollArea>
+
+      {/* Event Popup */}
+      {selectedEvent && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white p-6 rounded shadow-lg w-96">
+            <h2 className="text-lg font-bold">{selectedEvent.title}</h2>
+            <p className="text-sm text-gray-600 mt-2">{selectedEvent.description}</p>
+            <p className="text-sm text-gray-600 mt-2">
+              Time:{" "}
+              {new Date(selectedEvent.startTime).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}{" "}
+              -{" "}
+              {new Date(
+                new Date(selectedEvent.startTime).getTime() + selectedEvent.duration * 60000
+              ).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </p>
+            <button
+              className="mt-4 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
+              onClick={closePopup}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+    </>
   )
 }
