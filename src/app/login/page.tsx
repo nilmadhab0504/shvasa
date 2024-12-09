@@ -24,7 +24,6 @@ export default function LoginPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
 
-  // Redirect authenticated users to the home page
   useEffect(() => {
     if (status === "authenticated") {
       router.push("/");
@@ -43,7 +42,7 @@ export default function LoginPage() {
       const result = await signIn('credentials', {
             email: formData.email,
             password: formData.password,
-            callbackUrl: '/', // Redirects to the home page upon successful login
+            callbackUrl: '/', 
           });
 
       if (result?.error) {

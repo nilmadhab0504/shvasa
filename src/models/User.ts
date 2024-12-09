@@ -11,7 +11,6 @@ interface UserAttributes {
   updatedAt?: Date;
 }
 
-// Mongoose User Document Interface
 interface UserDocument extends Document {
   id: string;
   name: string;
@@ -23,7 +22,6 @@ interface UserDocument extends Document {
   updatedAt: Date;
 }
 
-// User Schema
 const UserSchema: Schema = new Schema<UserDocument>(
   {
     id: {
@@ -57,11 +55,10 @@ const UserSchema: Schema = new Schema<UserDocument>(
     },
   },
   {
-    timestamps: true, // Automatically manage `createdAt` and `updatedAt`
+    timestamps: true, 
   }
 );
 
-// Ensure the model is not recompiled during hot reloading in development
 const User: Model<UserDocument> =
   mongoose.models.User || mongoose.model<UserDocument>('User', UserSchema);
 
